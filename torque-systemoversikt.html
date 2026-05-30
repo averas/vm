@@ -1,0 +1,1324 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Torque — system­överskikt</title>
+<style>
+  :root {
+    --bg:         #0b0c10;
+    --surface:    #16181d;
+    --surface-2:  #1f222a;
+    --border:     rgba(255,255,255,0.07);
+    --text:       #f1f1f3;
+    --text-dim:   #b6bac3;
+    --text-mute:  #8a8e98;
+
+    --orange:     #ff7a1a;   /* CTA */
+    --violet:     #a78bfa;   /* urval / identitet */
+    --cyan:       #22d3ee;   /* aktivt nu */
+    --mint:       #34d399;   /* sparat / lyckat */
+    --green:      #22c55e;   /* VISA */
+    --yellow:     #facc15;   /* DÖLJ / ACK-paus */
+    --red:        #f87171;   /* fel / avbryt */
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.55;
+    font-size: 16px;
+  }
+
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+
+  header.title {
+    margin-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+  }
+  header.title .title-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  header.title .title-row img.brand {
+    width: 56px;
+    height: 56px;
+    flex: 0 0 auto;
+  }
+  header.title h1 {
+    margin: 0;
+    font-size: 36px;
+    letter-spacing: -0.01em;
+  }
+  header.title h1 .accent { color: var(--orange); }
+  header.title .lede {
+    color: var(--text-dim);
+    font-size: 17px;
+    max-width: 65ch;
+  }
+
+  nav.toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 56px;
+  }
+  nav.toc .toc-title {
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 11px;
+    color: var(--text-mute);
+    margin-bottom: 12px;
+  }
+  nav.toc > ol {
+    margin: 0;
+    padding: 0 0 0 24px;
+  }
+  nav.toc > ol > li {
+    margin: 10px 0;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  nav.toc ol ol {
+    margin: 4px 0 8px;
+    padding-left: 20px;
+    font-weight: 400;
+  }
+  nav.toc ol ol li { margin: 2px 0; font-size: 14px; }
+  nav.toc a {
+    color: var(--text);
+    text-decoration: none;
+  }
+  nav.toc a:hover { color: var(--cyan); }
+
+  section { margin-bottom: 64px; scroll-margin-top: 24px; }
+  section.part {
+    margin-top: 96px;
+    padding-top: 24px;
+    border-top: 2px solid var(--border);
+  }
+  section.part .part-label {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 11px;
+    color: var(--orange);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  section.part h2 { margin-top: 0; }
+
+  h2 {
+    font-size: 26px;
+    margin: 0 0 16px;
+    letter-spacing: -0.005em;
+  }
+  h3 {
+    font-size: 18px;
+    margin: 32px 0 12px;
+    color: var(--text);
+  }
+  h4 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-mute);
+    margin: 24px 0 8px;
+  }
+
+  p { color: var(--text-dim); max-width: 65ch; }
+  p strong { color: var(--text); font-weight: 600; }
+
+  ul, ol { color: var(--text-dim); max-width: 65ch; }
+  li { margin: 4px 0; }
+  li strong { color: var(--text); }
+
+  code, .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.92em;
+    background: rgba(255,255,255,0.06);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--text);
+  }
+
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; }
+
+  .pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: rgba(255,255,255,0.07);
+    color: var(--text);
+    margin-right: 4px;
+  }
+  .pill.orange { background: rgba(255,122,26,0.14); color: var(--orange); }
+  .pill.violet { background: rgba(167,139,250,0.16); color: var(--violet); }
+  .pill.cyan   { background: rgba(34,211,238,0.16); color: var(--cyan); }
+  .pill.mint   { background: rgba(52,211,153,0.16); color: var(--mint); }
+  .pill.green  { background: rgba(34,197,94,0.18);  color: var(--green); }
+  .pill.yellow { background: rgba(250,204,21,0.16); color: var(--yellow); }
+  .pill.red    { background: rgba(248,113,113,0.16); color: var(--red); }
+
+  /* Skärmdumpar */
+  figure.screenshot {
+    margin: 28px 0;
+    padding: 0;
+    text-align: center;
+  }
+  figure.screenshot img {
+    max-width: 320px;
+    width: 100%;
+    height: auto;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    box-shadow:
+      0 12px 32px rgba(0,0,0,0.55),
+      0 0 0 1px rgba(255,255,255,0.04) inset;
+    display: block;
+    margin: 0 auto;
+  }
+  figure.screenshot figcaption {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-mute);
+    text-align: center;
+    max-width: 65ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* Behåll platshållar-stilen för eventuella återstående tomma rutor */
+  figure.screenshot .frame {
+    border: 1px dashed rgba(167,139,250,0.45);
+    border-radius: 14px;
+    background: var(--surface);
+    padding: 56px 24px;
+    color: var(--text-mute);
+  }
+  figure.screenshot .frame .tag {
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 11px;
+    color: var(--violet);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  figure.screenshot .frame .hint { color: var(--text); font-size: 15px; }
+
+  /* Tabeller */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+  th {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-mute);
+  }
+  td code { font-size: 12.5px; }
+
+  /* Wizard-mockup (enkelt läge i Framtida utveckling) */
+  .wizard-flow {
+    margin: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 460px;
+  }
+  .wizard-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .wizard-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 11px;
+    color: var(--text-mute);
+    font-weight: 600;
+  }
+  .wizard-step .dots {
+    display: inline-flex;
+    gap: 6px;
+  }
+  .wizard-step .dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+  }
+  .wizard-step .dots span.active { background: var(--orange); }
+  .wizard-step .dots span.done   { background: var(--mint); }
+  .wizard-q {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .wizard-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .wizard-opt {
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+  .wizard-opt.selected {
+    background: rgba(167,139,250,0.16);
+    border-color: rgba(167,139,250,0.5);
+    color: var(--violet);
+    font-weight: 600;
+  }
+  .wizard-cta {
+    align-self: flex-end;
+    padding: 10px 22px;
+    background: var(--orange);
+    color: #141414;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(255,122,26,0.32);
+    margin-top: 4px;
+  }
+  .wizard-cta.secondary {
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+    box-shadow: none;
+  }
+
+  /* Callouts */
+  .callout {
+    border-left: 3px solid var(--cyan);
+    background: rgba(34,211,238,0.05);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 20px 0;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  .callout.warn { border-left-color: var(--yellow); background: rgba(250,204,21,0.06); }
+  .callout.note { border-left-color: var(--violet); background: rgba(167,139,250,0.06); }
+  .callout strong { color: var(--text); }
+
+  a { color: var(--cyan); }
+  a:hover { color: var(--orange); }
+
+  hr { border: 0; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  /* Print */
+  @media print {
+    body { background: #fff; color: #111; }
+    .wrap { max-width: none; padding: 16px; }
+    nav.toc { background: #f8f8f8; border-color: #ccc; }
+    pre { background: #f4f4f4; color: #111; border-color: #ddd; }
+    figure.screenshot .frame { background: #f8f8f8; border-color: #999; }
+    p, ul, ol, td { color: #333; }
+    code, .mono { background: #f0f0f0; color: #111; }
+    section.part { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <div class="title-row">
+    <img class="brand" src="screenshots/crosshair.png" alt="Torque crosshair-ikon">
+    <h1><span class="accent">Torque</span> — vridmålsstyrning</h1>
+  </div>
+  <p class="lede">
+    Översikt över användargränssnitt, manussystem, körlogik och kommunikation mellan webbklient och vridmålskontroller.
+    Hårdvarudetaljer och fysisk uppbyggnad ligger i den separata
+    <a href="https://drive.google.com/file/u/1/d/1r0jaCsZ-gvl70to4TwbiwZl5HiUyiCNi/view?usp=drive_open">hårdvarudokumentationen</a>.
+  </p>
+</header>
+
+<nav class="toc">
+  <div class="toc-title">Innehåll</div>
+  <ol>
+    <li><a href="#intro-part">Intro</a></li>
+    <li><a href="#ui-part">Användargränssnitt</a>
+      <ol>
+        <li><a href="#manus">Manus-fliken</a></li>
+        <li><a href="#dsl-ux">DSL-vyn</a></li>
+        <li><a href="#sekvens">Sekvens-fliken</a></li>
+        <li><a href="#ack">ACK och repetition</a></li>
+        <li><a href="#avbryt">Avbryta körning</a></li>
+        <li><a href="#direkt">Direkt-fliken</a></li>
+        <li><a href="#farger">Färgkodning och språk</a></li>
+        <li><a href="#anslutning">Anslutning</a></li>
+      </ol>
+    </li>
+    <li><a href="#tek-part">Tekniska detaljer</a>
+      <ol>
+        <li><a href="#datamodell">Datamodell</a></li>
+        <li><a href="#dsl-tek">DSL i detalj</a></li>
+        <li><a href="#singleton">Singelton-arkitektur</a></li>
+        <li><a href="#lagring">Definiera, spara och hämta</a></li>
+        <li><a href="#exekvering">Exekvering</a></li>
+        <li><a href="#timing">Timingnoggrannhet</a></li>
+        <li><a href="#protokoll">WebSocket-protokoll</a></li>
+        <li><a href="#felsokning">Felsökning-fliken</a></li>
+      </ol>
+    </li>
+    <li><a href="#framtid-part">Framtida utveckling</a></li>
+  </ol>
+</nav>
+
+<!-- =================================================== -->
+<!-- INTRO -->
+<!-- =================================================== -->
+<section id="intro-part" class="part">
+  <h2>Intro</h2>
+</section>
+
+<section id="intro">
+  <h2>Vad är Torque?</h2>
+  <p>
+    Torque är en vridmålsstyrning med tre uppgifter: <strong>visa eller dölja vridmålen</strong>
+    via hårdvaru-aktuatorer, <strong>spela upp ljudkommandon</strong>, och
+    <strong>köra tidsstyrda sekvenser</strong> (här kallade <em>manus</em>) som kombinerar dessa
+    moment med pauser och bekräftelser från en skjutledare.
+  </p>
+  <p>
+    Hela systemet styrs från en webapp som tillhandahålls av kontrollern. Flera klienter kan vara
+    anslutna samtidigt och se samma körning live.
+  </p>
+  <figure class="screenshot">
+    <img src="screenshots/01-splash.png" alt="Splash-skärm med Torque-logotyp över bild av en skjutbana, och en orange Kom igång-knapp">
+    <figcaption>Splash-skärmen som visas när webbappen öppnas. Vid lokal utveckling visas också ett URL-fält.</figcaption>
+  </figure>
+</section>
+
+<!-- =================================================== -->
+<!-- ANVÄNDARGRÄNSSNITT -->
+<!-- =================================================== -->
+<section id="ui-part" class="part">
+  <h2>Användargränssnitt</h2>
+  <p>
+    Den här delen följer flödet en skjutledare går igenom: bygga eller hämta ett manus,
+    skicka det till kontrollern, och slutligen köra det. Den beskriver vad varje flik gör och hur de
+    hänger ihop. Tekniska detaljer (datastrukturer, protokoll, timing) följer i nästa del.
+  </p>
+</section>
+
+<section id="manus">
+  <h2>Manus-fliken</h2>
+  <p>
+    Manus-fliken är där du bygger och hanterar manus. Ett <strong>manus</strong> är en namngiven
+    sekvens som består av <strong>steg</strong>, indelade i en eller flera <strong>vapenklasser</strong>
+    (varianter av samma manus med olika tider).
+  </p>
+
+  <h3>Stegbaserad editor</h3>
+  <p>
+    Varje steg har:
+  </p>
+  <ul>
+    <li><strong>Tid</strong>: antingen absolut (<code>0&nbsp;ms</code>, <code>5000&nbsp;ms</code> …)
+        eller relativt (<code>+500&nbsp;ms</code>) till föregående steg inom samma fas. En relativ
+        tid räknas från när det föregående steget <em>påbörjades</em>, inte när det avslutades.</li>
+    <li><strong>Åtgärder</strong>: en lista av <span class="pill green">VISA</span>,
+        <span class="pill yellow">DÖLJ</span> och <span class="pill cyan">SPELA &lt;ljud&gt;</span>
+        som körs parallellt vid steget.</li>
+    <li><strong>Väntar på bekräftelse</strong> (ACK): om markerat pausar manuset efter att stegets
+        ljudkommando spelats färdigt, tills skjutledaren trycker <em>Fortsätt</em> eller <em>Upprepa</em>.</li>
+  </ul>
+
+  <figure class="screenshot">
+    <img src="screenshots/02-manus-script.png" alt="Manus-fliken med manuset Station 5, tre vapenklass-chips, tio steg uppdelade i fem faser, och en orange Skicka-knapp">
+    <figcaption>Manus-fliken: <em>Station 5</em> — en fältsekvens från Ladda till Markera med 10 steg
+      uppdelade i fem faser (varje ACK-port öppnar en ny fas). Den valda vapenklassen är violett, och
+      statuspillet längst ned visar att manuset är inläst på kontrollern.</figcaption>
+  </figure>
+
+  <h3>Vapenklasser (varianter)</h3>
+  <p>
+    Många manus har samma uppbyggnad men olika tider beroende på vapenklass.
+    I stället för att skapa flera nästan-identiska manus stöder Torque <strong>varianter</strong>
+    inom ett och samma manus. Du växlar mellan dem genom att trycka på en chip i radens översta del.
+    När du sänder manuset till kontrollern är det den för tillfället valda variantens DSL som skickas över.
+  </p>
+
+  <h3>Mallar och bibliotek</h3>
+  <p>
+    Tre-prickars-menyn (uppe till höger) erbjuder följande operationer:
+  </p>
+  <ul>
+    <li><strong>Spara</strong> — sparar manuset till kontrollerns SD-kort under befintligt ID.</li>
+    <li><strong>Spara som ny…</strong> — sparar med ett nytt ID och namn.</li>
+    <li><strong>Öppna…</strong> — öppnar manus-biblioteket på kontrollern (drawer-vy).</li>
+    <li><strong>Hämta från kontrollern</strong> — läser in det manus som <em>just nu</em> är laddat på
+        kontrollern i din lokala editor. Användbart när någon annan har skickat något och du vill arbeta
+        vidare på det.</li>
+    <li><strong>Nytt manus</strong> — startar tomt.</li>
+    <li><strong>Lägg till / byt namn på / ta bort vapenklass</strong>.</li>
+    <li><strong>Börja från en mall</strong> — fördefinierade DSL-mallar för vanliga skytteövningar.</li>
+  </ul>
+
+  <h3>Skicka till kontrollern</h3>
+  <p>
+    Den klistrade fältet längst ned (en flytande "pill") visar kontrollerns status och har knappen
+    <strong>Skicka till kontrollern</strong>. Den kompilerar manuset till DSL och laddar det på
+    kontrollern. Manuset körs <em>inte</em> direkt — start sker från Sekvens-fliken.
+  </p>
+  <p>
+    Statusindikatorn visar fyra lägen:
+    <span class="pill">Inte ansluten</span>
+    <span class="pill orange">Klar att skicka</span>
+    <span class="pill mint">Inläst på kontrollern</span>
+    <span class="pill cyan">Sekvens körs — Skicka avstängt</span>.
+  </p>
+  <div class="callout warn">
+    Om kontrollern redan kör en sekvens avvisar den ett nytt <code>load</code>-anrop så att en
+    skjutledare inte oavsiktligt kapar pågående övning från en annan klient.
+  </div>
+</section>
+
+<section id="dsl-ux">
+  <h2>DSL-vyn (avancerat)</h2>
+  <p>
+    Längst ned på Manus-fliken finns ett expanderbart panel-element <em>"Avancerat — DSL"</em>.
+    Det visar manuset i textform enligt Torque-DSL-grammatiken, och låter dig:
+  </p>
+  <ul>
+    <li>Klistra in DSL direkt i textrutan och konvertera till steg.</li>
+    <li>Kopiera den kompilerade DSL-en (t.ex. för att klistra in i en spelplan).</li>
+    <li>Uppdatera textfältet från de aktuella stegen.</li>
+  </ul>
+  <p>
+    DSL-grammatiken beskrivs formellt i avsnittet <a href="#dsl-tek">DSL i detalj</a>. Här räcker det
+    att veta att en rad ser ut som:
+  </p>
+<pre><code>0:     PLAY 022 -&gt; SHOW -&gt; ACK
++5000: PLAY 050
++2000: HIDE</code></pre>
+  <p>
+    Den första kolumnen anger tid (<code>0</code> absolut eller <code>+5000</code> relativ).
+    Pilarna <code>-&gt;</code> separerar <em>stadier</em> som körs i sekvens, medan åtgärder inom
+    samma stadium körs parallellt.
+  </p>
+</section>
+
+<section id="sekvens">
+  <h2>Sekvens-fliken</h2>
+  <p>
+    Sekvens-fliken är där manuset <em>körs</em>. Den visar inte vad du har i editorn lokalt — den
+    visar vad kontrollern faktiskt har laddat. Det här är viktigt: två skjutledare på två klienter ser
+    samma tidslinje, samma aktiva steg, samma elapsed-timer.
+  </p>
+
+  <figure class="screenshot">
+    <img src="screenshots/03-sekvens-idle.png" alt="Sekvens-fliken: Station 5 inläst med mintgrön check på Vapenklass A, orange Starta-knapp, och tidslinje med alla tio steg i vänteläge">
+    <figcaption>Sekvens-fliken innan körning för Station 5. Tidslinjen renderas från det laddade manuset
+      på kontrollern; mint-checken på Vapenklass A bekräftar att den varianten är aktuell.</figcaption>
+  </figure>
+
+  <h3>Vapenklass-väljare</h3>
+  <p>
+    Om det laddade manuset har flera vapenklasser visas de som chips. Den som matchar kontrollerns DSL
+    markeras med <span class="pill mint">mint-grön bock</span> ("inläst på kontrollern"). Tryck på en
+    annan klass-chip för att direkt skicka dess DSL till kontrollern — en snabb omladdning utan att
+    behöva gå tillbaka till Manus-fliken.
+  </p>
+
+  <h3>Starta</h3>
+  <p>
+    <span class="pill orange">Starta</span> är aktiv när ett manus är laddat och ingen körning
+    pågår. När du trycker går kontrollern i körläge: tidslinjen får en cyan accent, fas-chip:en
+    växlar till <span class="pill cyan">Körs</span>, och stegen aktiveras i tur och ordning.
+  </p>
+
+  <h3>Tidslinjen</h3>
+  <p>
+    Stegen ritas vertikalt med en numrerad rail. Vart och ett ritas i ett av fyra tillstånd:
+  </p>
+  <ul>
+    <li><strong>Vilande</strong> — gråtonat, väntar på sin tur.</li>
+    <li><span class="pill cyan">Aktivt nu</span> — cyan ring, pulserande, med en räknare som
+        visar förfluten tid och en stapel som indikerar tid till nästa steg.</li>
+    <li><span class="pill yellow">Väntar på ACK</span> — gul/amber ring, pulserande, med
+        Fortsätt/Upprepa-knappar.</li>
+    <li><span class="pill mint">Klart</span> — mintgrön ring, dimmat innehåll.</li>
+  </ul>
+  <figure class="screenshot">
+    <img src="screenshots/04-sekvens-running.png" alt="Sekvens-fliken under körning av Station 5: stegen 1–4 mintgröna och avklarade, steg 5 Visa målen cyan-aktivt med 6.5 s räknare, kommande steg dimmade, och en röd Avbryt sekvens-knapp">
+    <figcaption>Live-rendering av Station 5 mitt i sekvensen — steg 5 "Visa målen" är aktivt (6.5 s
+      förflutet av de 17 s tills nästa kommando "Eld upphör"). Tidslinjen är delad mellan klienter via
+      firmwarens broadcast, och Starta-knappen har bytts mot röd Avbryt sekvens.</figcaption>
+  </figure>
+</section>
+
+<section id="ack">
+  <h2>ACK och repetition</h2>
+  <p>
+    När ett steg har <em>Vänta på bekräftelse</em> markerat pausar manuset efter stegets
+    ljudkommando spelats färdigt. Två knappar dyker upp i steget:
+  </p>
+  <ul>
+    <li><strong>Fortsätt</strong> — gå vidare till nästa steg.
+        Kan också styras med <span class="pill green">grön knapp</span> direkt på kontrollern.</li>
+    <li><strong>Upprepa</strong> — kör om <em>aktuell rad</em> (samma stadium-block) och vänta på
+        ACK igen efteråt.
+        Kan också styras med <span class="pill yellow">gul knapp</span> direkt på kontrollern.</li>
+  </ul>
+  <p>
+    ACK-trycket är globalt: vilken klient som helst kan trycka Fortsätt eller Upprepa, och alla
+    klienter ser samma övergång. Två skjutledare i alternativ avlösning är ett uttryckligt
+    designmål, inte en bugg.
+  </p>
+  <figure class="screenshot">
+    <img src="screenshots/05-sekvens-ack.png" alt="Sekvens-fliken vid ACK-port på steg 8 Patron ur, proppa vapen: pulserande gul/orange ring, Väntar på bekräftelse-text, och två knappar för Fortsätt och Upprepa">
+    <figcaption>ACK-port på steg 8 "Patron ur, proppa vapen" — skjutledaren bekräftar att skytten har
+      proppat vapnet innan sekvensen går vidare till Visitation. Knapparna är ekvivalenta med
+      grön/gul knapp på kontrollerns front.</figcaption>
+  </figure>
+</section>
+
+<section id="avbryt">
+  <h2>Avbryta körning</h2>
+  <p>
+    När en körning pågår byter <span class="pill orange">Starta</span>-knappen plats med
+    <span class="pill red">Avbryt sekvens</span>. Knappen har ett två-stegs bekräftelseflöde för
+    att undvika oavsiktliga avbrott:
+  </p>
+  <ol>
+    <li>Första trycket — knappen blir röd-flat och pulserar med texten
+        <em>"Tryck igen för att avbryta"</em>.</li>
+    <li>Andra trycket inom 3 sekunder — manuset stannar omedelbart, ljudet klipps,
+        målens fysiska position lämnas orörd.</li>
+    <li>Sker inget andra tryck inom fönstret återgår knappen till "armerat" viloläge.</li>
+  </ol>
+  <div class="callout note">
+    Målens position lämnas orörd vid Avbryt — det är en medveten policy. En skjutledare som avbryter
+    kan därefter använda <a href="#direkt">Direkt-fliken</a> för att manuellt fälla eller resa
+    målen.
+  </div>
+</section>
+
+<section id="direkt">
+  <h2>Direkt-fliken</h2>
+  <p>
+    Direkt-fliken är manuellt styrläge för testning eller manuell handhavning. Den är
+    <em>avstängd</em> medan ett manus körs — manus-tidslinjen är då auktoritativ.
+  </p>
+  <h3>Visa / Dölj målen</h3>
+  <p>
+    Två stora knappar: <span class="pill green">Visa målen</span> (grön, matchar den gröna LEDen på
+    kontrollern) och <span class="pill yellow">Dölj målen</span> (gul, matchar den gula LEDen). En chip
+    indikerar aktuellt läge: grön när målen syns, gul när de är dolda.
+  </p>
+  <h3>Spela ljud</h3>
+  <p>
+    Ett dropdown-fält listar alla ljud i ljudkatalogen (med svenska och engelska titlar). Längre
+    ned visas ett snabbvals-rutnät med kakelvy: tre kolumner med ljud-ID i violett monospace och
+    ljudets titel under.
+  </p>
+  <div class="callout note">
+    Snabbvals-rutnätet är idag platt — alla ljud listas tillsammans. Här finns en naturlig öppning
+    för att i framtiden filtrera eller gruppera vyn per skjutgren (fältskjutning, militär snabbmatch,
+    pistolskytte etc.) så att skjutledaren snabbt når de kommandon som hör till aktuell övning utan
+    att scrolla genom hela katalogen.
+  </div>
+  <figure class="screenshot">
+    <img src="screenshots/06-direkt.png" alt="Direkt-fliken: grön Visa målen-knapp och gul Dölj målen-knapp, ljudval-dropdown med Spela-knapp, och ett snabbvals-rutnät i tre kolumner med ljud-ID i violett">
+    <figcaption>Direkt-fliken används vid kalibrering, testning, eller övningar utanför manus. Knappfärgerna
+      matchar den gröna/gula LEDen på kontrollern (grön = visa, gul = dölj).</figcaption>
+  </figure>
+</section>
+
+<section id="farger">
+  <h2>Färgkodning och språk</h2>
+  <p>
+    Färgerna i gränssnittet är inte dekorativa — varje färg har en semantisk roll:
+  </p>
+  <table>
+    <thead>
+      <tr><th>Färg</th><th>Roll</th><th>Var</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="pill orange">Orange</span></td>
+          <td>Primär call-to-action</td>
+          <td>Starta, Skicka till kontrollern, Lägg till steg</td></tr>
+      <tr><td><span class="pill violet">Violett</span></td>
+          <td>Urval / identitet</td>
+          <td>Aktiv vapenklass-chip, ljud-ID i snabbval</td></tr>
+      <tr><td><span class="pill cyan">Cyan</span></td>
+          <td>Aktivt just nu</td>
+          <td>Pågående tidslinjesteg, "Körs"-chip</td></tr>
+      <tr><td><span class="pill mint">Mintgrön</span></td>
+          <td>Sparat / lyckat</td>
+          <td>"Inläst på kontrollern"-chip, klart steg</td></tr>
+      <tr><td><span class="pill green">Grön</span></td>
+          <td>Visa målen (grön LED på kontrollern)</td>
+          <td>Visa-knappen, SHOW-ikoner i listor</td></tr>
+      <tr><td><span class="pill yellow">Gul</span></td>
+          <td>Dölj målen / ACK-paus (gul LED på kontrollern)</td>
+          <td>Dölj-knappen, HIDE-ikoner, "Väntar på bekräftelse"</td></tr>
+      <tr><td><span class="pill red">Röd</span></td>
+          <td>Fel / destruktivt</td>
+          <td>Avbryt sekvens, error-aviseringar</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Användargränssnittet är på <strong>svenska</strong> som standard, eftersom kontrollerns ljudbank
+    är på svenska. En språkväxlare finns men engelska är endast delvis översatt.
+  </p>
+</section>
+
+<section id="anslutning">
+  <h2>Anslutning</h2>
+  <p>
+    Vid uppstart ansluter klienten till kontrollern via WebSocket. URL-en är som standard
+    <code>ws://torque.local:81/</code>. Om kontrollern serverar webbappen själv (vilket är det vanliga
+    scenariot) prövas anslutningen automatiskt och URL-fältet döljs — du ser bara en knapp.
+  </p>
+  <p>
+    Om kontrollern inte hittar något sparat Wi-Fi (första uppstarten, eller efter "Glöm Wi-Fi") öppnar
+    den i stället en <strong>AP-portal</strong> kallad <code>Torque-AP</code>. Anslut datorn eller
+    telefonen till det nätet, så omdirigeras du till en konfigurationssida där du anger SSID och
+    lösenord. Kontrollern startar om och ansluter till nätet du valt.
+  </p>
+  <div class="callout warn">
+    <strong>Glöm Wi-Fi</strong> tar bort sparade uppgifter helt — det finns inget inbyggt
+    fallback-nätverk i kontrollerns firmware längre. Efter en glöm-operation hamnar kontrollern i AP-portalen
+    tills du sparar nya uppgifter.
+  </div>
+</section>
+
+<!-- =================================================== -->
+<!-- TEKNISKA DETALJER -->
+<!-- =================================================== -->
+<section id="tek-part" class="part">
+  <h2>Tekniska detaljer</h2>
+  <p>
+    Den här delen beskriver datamodellen, DSL-grammatiken, hur tillstånd hanteras, hur körning
+    fungerar internt, samt protokollet mellan webbklient och kontroller. Hårdvarudetaljer (pin map,
+    interlocks, etc.) ligger i den separata hårdvarudokumentationen.
+  </p>
+</section>
+
+<section id="datamodell">
+  <h2>Datamodell</h2>
+  <p>
+    Manus-systemet är hierarkiskt:
+  </p>
+<pre><code>Script {
+  id: "fardigskjutning-vap-a"
+  name: "Färdigskjutning"
+  variants: [
+    Variant {
+      id: "var-1"
+      label: "Vapenklass A"
+      steps: [ Step, Step, ... ]
+    },
+    Variant { label: "Vapenklass B", steps: [...] },
+    ...
+  ]
+  currentVariantId
+  dirty: bool       // har osparat ändringar?
+}
+
+Step {
+  delayMs:     number
+  delayMode:   "absolute" | "relative"
+  actions: [
+    { type: "play", id: 22 },
+    { type: "show" },
+    { type: "hide" },
+  ]
+  waitForAck:  bool
+}</code></pre>
+  <p>
+    Stegen är den <strong>kanoniska representationen</strong> i webbklienten. DSL-en kompileras
+    fram <em>on demand</em> från stegen, inte tvärtom. När en användare klistrar in DSL i den
+    avancerade panelen parsas den till steg och stegen blir den nya kanoniska representationen.
+  </p>
+  <p>
+    Mellanlagring sker i <code>localStorage</code> under nyckeln <code>torque.script.v2</code> så
+    att en oavslutad redigering överlever en omladdning av sidan. Det är dock bara en arbetsbuffer
+    — det <em>verkliga</em> persistenta hemmet för ett manus är SD-kortet på kontrollern.
+  </p>
+</section>
+
+<section id="dsl-tek">
+  <h2>DSL i detalj</h2>
+  <p>
+    Torque-DSL är en minimal radbaserad notation. Grammatiken är medvetet smal — det är inget
+    generellt programmeringsspråk, bara tillräckligt för att uttrycka tidsstyrda målsekvenser.
+  </p>
+
+  <h4>Rader</h4>
+  <p>
+    Varje rad har formen:
+  </p>
+<pre><code>&lt;time&gt;: &lt;stage&gt; [-&gt; &lt;stage&gt; [-&gt; ...]]</code></pre>
+  <ul>
+    <li><strong>time</strong> — antingen absolut (<code>5000</code>, antal millisekunder
+        sedan starten av aktuellt block) eller relativ (<code>+500</code>, millisekunder efter
+        föregående rad i samma block).</li>
+    <li><strong>stage</strong> — en eller flera <strong>parallella</strong> åtgärder, separerade
+        av kommatecken. Stadier i sin tur körs <strong>sekventiellt</strong>, separerade av <code>-&gt;</code>.</li>
+  </ul>
+
+  <h4>Åtgärder</h4>
+  <table>
+    <thead>
+      <tr><th>Token</th><th>Innebörd</th><th>Varaktighet</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>PLAY &lt;id&gt;</code></td>
+          <td>Spelar <code>/audio/&lt;id&gt;.wav</code> från kontrollerns SD-kort</td>
+          <td>WAV-filens längd (kompenseras med <code>AUDIO_LEAD_MS</code>)</td></tr>
+      <tr><td><code>SHOW</code></td>
+          <td>Reser målen via aktuatorinterlocket</td>
+          <td>500 ms (<code>ACTUATOR_MIN_MS</code>)</td></tr>
+      <tr><td><code>HIDE</code></td>
+          <td>Fäller målen</td>
+          <td>500 ms</td></tr>
+      <tr><td><code>ACK</code></td>
+          <td>Pausar manuset till skjutledaren trycker Fortsätt eller Upprepa</td>
+          <td>obegränsad</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Exempel</h4>
+<pre><code>0:     PLAY 022 -&gt; SHOW -&gt; ACK
++5000: PLAY 050
++2000: HIDE</code></pre>
+  <p>
+    Tolkning rad för rad:
+  </p>
+  <ol>
+    <li>Vid t=0: spela ljud 022. När det är klart, res målen. När de är uppe (500 ms),
+        pausa och vänta på ACK.</li>
+    <li>5 sekunder efter ACK-fortsättningen: spela ljud 050.</li>
+    <li>2 sekunder senare: fäll målen.</li>
+  </ol>
+  <p>
+    Relativa tider efter ACK räknas från <em>ack-fortsättningens</em> tidpunkt — varje ACK skapar
+    en ny anchor för efterföljande relativa offsets.
+  </p>
+
+  <h4>Kompilering</h4>
+  <p>
+    Webbklienten kompilerar steg → DSL med hjälpfunktionen <code>compileToDsl(steps)</code>. DSL-en
+    skickas sedan till kontrollern som parsar den vidare till en intern intermediate representation
+    (en flat array av <code>Item</code> med absoluta tider, parallella åtgärder, ACK-flaggor och
+    segmentgränser). Den representationen är vad runner-loopen pumpar.
+  </p>
+</section>
+
+<section id="singleton">
+  <h2>Singelton-arkitektur</h2>
+  <p>
+    En av Torques viktigaste designprinciper: <strong>kontrollern är den enda källan till sanning</strong>
+    om vad som körs just nu. Webbklienterna är vyer, inte autoritativa lagringar.
+  </p>
+
+  <h3>AppState på kontrollern</h3>
+  <p>
+    På kontrollern finns en enda struktur <code>AppState</code> som speglar varje delad aspekt av
+    körningen:
+  </p>
+<pre><code>struct AppState {
+  bool     targetsVisible;
+  bool     scriptRunning;
+  bool     scriptLoaded;
+  bool     waitForUserAck;
+  String   loadedScriptDsl;     // kanonisk DSL
+  String   loadedScriptName;    // visningsnamn (synkat över klienter)
+  uint32_t activeStepIndex;     // UINT32_MAX när vilande
+  uint32_t currentStepStartedMs;
+  bool     repeatMode;
+  int      wsClients;
+};</code></pre>
+  <p>
+    Alla mutationer sker via <code>state::mutate(fn)</code> som tar mutex, kör closuren, och
+    publicerar ögonblicksbilden till lyssnare (WebSocket-tasken är en av dem) <em>utanför</em>
+    låset.
+  </p>
+
+  <h3>Konsekvenser för flera klienter</h3>
+  <ul>
+    <li><strong>Tidslinjen renderas från kontrollerns DSL</strong>, inte från en klients lokala utkast.
+        Alla anslutna ser samma steg.</li>
+    <li><strong>ACK från vilken klient som helst</strong> driver samma sekvens framåt. Två
+        skjutledare som alternerar Fortsätt/Upprepa är ett stöttat användningsfall.</li>
+    <li><strong>Steg-elapsed-timer anchoras lokalt</strong> per klient. Kontrollern skickar
+        <code>currentStepElapsedMs</code> i varje state-snapshot, klienten räknar
+        <code>Date.now() - elapsedMs</code> som starttid, och tickar lokalt därefter. Det undviker
+        att lita på kontrollerns <code>millis()</code>-klocka mellan snapshots.</li>
+    <li><strong>Manusnamnet</strong> (<code>loadedScriptName</code>) skickas med på varje state-frame
+        — om klient A döper om manuset till "YYY" och skickar igen, så uppdateras klient B:s
+        Sekvens-flik omedelbart.</li>
+  </ul>
+
+  <div class="callout note">
+    Den lokala editorn på klient B uppdateras däremot <em>inte</em> automatiskt — det är medvetet.
+    Klient B kan vara mitt i att redigera något annat. Vill man ha den senaste versionen i sin egen
+    editor finns menyvalet <em>Hämta från kontrollern</em> på Manus-fliken.
+  </div>
+</section>
+
+<section id="lagring">
+  <h2>Definiera, spara och hämta</h2>
+  <p>
+    Det finns tre lagringsnivåer för ett manus:
+  </p>
+  <ol>
+    <li><strong>Lokalt utkast</strong> i klientens <code>localStorage</code> — sparas automatiskt
+        mellan sidladdningar.</li>
+    <li><strong>Inläst på kontrollern</strong> — den DSL som kontrollern har kompilerat och kan starta
+        omedelbart. Endast en åt gången.</li>
+    <li><strong>Manusbibliotek på SD-kortet</strong> — JSON-filer under <code>/scripts/&lt;id&gt;.json</code>
+        som lagrar fullständig manusstruktur (alla vapenklasser, alla steg). Skrivs atomärt
+        (tmp-fil + rename).</li>
+  </ol>
+
+  <h3>Vägar in i editorn</h3>
+  <ul>
+    <li><strong>Skriv från grunden</strong> — välj "Nytt manus" i menyn, börja lägga till steg.</li>
+    <li><strong>Mall</strong> — välj en fördefinierad mall från menyn eller från tomma manus-vyn.</li>
+    <li><strong>Öppna från bibliotek</strong> — välj "Öppna…" → välj manus i drawer-listan.</li>
+    <li><strong>Hämta från kontrollern</strong> — läs in det manus som just nu är laddat på kontrollern.
+        Bekräftelsedialog om lokala ändringar skulle skrivas över.</li>
+    <li><strong>Klistra in DSL</strong> — i den avancerade DSL-panelen.</li>
+  </ul>
+
+  <h3>Vägar in på kontrollern</h3>
+  <ul>
+    <li><strong>Skicka till kontrollern</strong> (Manus-flikens sticky pill) — kompilerar och laddar
+        aktuell variant.</li>
+    <li><strong>Tryck på vapenklass-chip</strong> på Sekvens-fliken — laddar den variantens DSL utan
+        att lämna fliken.</li>
+  </ul>
+  <p>
+    Båda vägarna skickar samma <code>load</code>-kommando över WebSocket, tillsammans med
+    manusnamnet (synkning till andra klienter).
+  </p>
+
+  <h3>Spara till bibliotek</h3>
+  <ul>
+    <li><strong>Spara</strong> skriver över befintligt manus-ID.</li>
+    <li><strong>Spara som ny…</strong> sparar med nytt ID + namn. Användbart för att duplicera
+        ett befintligt manus innan ändring.</li>
+    <li><strong>Ta bort</strong> i biblioteksdrawern raderar manuset från SD-kortet.</li>
+  </ul>
+</section>
+
+<section id="exekvering">
+  <h2>Exekvering</h2>
+  <p>
+    Exekvering är en gemensam loop mellan webbklient och kontroller, där kontrollern äger logiken och
+    klienten är vy + kontroll.
+  </p>
+
+  <h3>Start</h3>
+  <ol>
+    <li>Klient skickar <code>{type:"start"}</code> över WebSocket.</li>
+    <li>Kontroller: <code>scripting::start()</code> nollställer ankarvariabler, sätter
+        <code>g_runner.start(millis())</code>, sätter <code>scriptRunning=true</code> i AppState,
+        tänder SCRIPT-LEDen, publicerar <code>ScriptStarted</code>.</li>
+    <li>Alla anslutna klienter får uppdaterad state via broadcast.</li>
+  </ol>
+
+  <h3>Pumpning</h3>
+  <p>
+    Huvudloopen kallar <code>scripting::update()</code> som i sin tur kallar
+    <code>g_runner.update(now_ms)</code>. Runnern itererar genom <code>prog_.items</code> och fyrar
+    de items vars förfallotid har inträffat. För varje item:
+  </p>
+  <ul>
+    <li>Anropar <code>cb_.onItemFired(lineId)</code> som mutar <code>activeStepIndex</code> och
+        nollställer <code>currentStepStartedMs</code> — driver klientens tidslinje.</li>
+    <li>Itererar parallella åtgärder och kallar respektive callback:
+        <code>playAudio</code>, <code>showTargets</code>, <code>hideTargets</code>.</li>
+    <li>Om itemet öppnar en ACK-port sätts <code>wait_ack_=true</code> och uppdateringen pausar
+        här tills <code>userAck()</code> eller <code>userAckRepeat()</code> kallas.</li>
+  </ul>
+
+  <h3>Tidsbaser</h3>
+  <p>
+    Det finns två tidsbaser i runnern, beroende på itemets <code>anchor_after_ack</code>-flagga:
+  </p>
+  <ul>
+    <li><strong>Anchored på start</strong>: <code>due = start_ms_ + item.at_ms</code></li>
+    <li><strong>Anchored efter ACK</strong>: <code>due = ack_anchor_ms_ + item.at_ms</code></li>
+  </ul>
+  <p>
+    Det är så relativa tider efter en ACK kommer att räknas från ACK-tryckets ögonblick, inte
+    från manusstarten.
+  </p>
+
+  <h3>Audio-lead</h3>
+  <p>
+    Ljud spelas något <em>tidigare</em> än sin nominella tid (<code>AUDIO_LEAD_MS</code> = 115 ms)
+    eftersom det tar tid för DAC-pipelinen att producera det första sampelet. Detta gör att den
+    <em>hörbara</em> starten av ljudet sammanfaller med det visuella ankarpunkten. Värdet är empiriskt
+    bestämt mot den specifika I2S-DAC-konfigurationen och bör revideras om pipelinen ändras.
+  </p>
+
+  <h3>Slut på manus</h3>
+  <p>
+    När alla items är konsumerade sätter runnern <code>running_=false</code>. Kontrollerns
+    <code>update()</code> upptäcker det, väntar in den sista åtgärdens varaktighet (för att inte
+    klippa en pågående SHOW/HIDE-puls), och rensar därefter <code>scriptRunning</code>,
+    <code>waitForUserAck</code>, <code>activeStepIndex</code>, <code>currentStepStartedMs</code>
+    och <code>repeatMode</code>. SCRIPT-LEDen släcks och <code>ScriptFinished</code> publiceras.
+  </p>
+
+  <h3>Avbryt</h3>
+  <p>
+    <code>scripting::abort()</code> halterar runnern omedelbart, stoppar pågående audio,
+    lämnar målen i sitt nuvarande läge, och publicerar <code>ScriptAborted</code>. Implementerar
+    en explicit <code>Runner::abort()</code> som sätter <code>running_=false</code>,
+    <code>wait_ack_=false</code>, och parkar <code>next_item_</code> vid slutet.
+  </p>
+</section>
+
+<section id="timing">
+  <h2>Timingnoggrannhet</h2>
+  <p>
+    Mätningar och full karaktäristik finns i den separata
+    <a href="https://drive.google.com/file/u/1/d/1r0jaCsZ-gvl70to4TwbiwZl5HiUyiCNi/view?usp=drive_open">hårdvarudokumentationen</a>.
+    Här sammanfattas de arkitekturella beslut som möjliggör låg jitter.
+  </p>
+
+  <h3>Arbete uppdelat över två CPU-kärnor</h3>
+  <p>
+    Kontrollerns processor har två kärnor och Torque utnyttjar båda för att hålla ljudet rent och
+    timingen stabil. <strong>Nätverket och Wi-Fi-stacken körs på kärna 0</strong> (där FreeRTOS och
+    Arduinos systemtaskar normalt landar), medan <strong>ljud, scripting-loopen och knapphantering
+    körs på kärna 1</strong>. Det är en medveten ansvarsfördelning:
+  </p>
+  <ul>
+    <li>WebSocket-trafik, mDNS, OTA-uppdateringar — allt som kan ta variabel tid på grund av
+        radio, omsändningar eller TCP-staller — ligger på kärna 0. Om Wi-Fi-stacken plötsligt
+        behöver göra ett tungt arbete (t.ex. en associationsrunda) påverkar det <em>inte</em>
+        scripting-loopen eller ljuduppspelningen.</li>
+    <li>Ljud-tasken är pinnad till kärna 1 vid prioritet 3, ovanför Arduino-loopens prioritet 1.
+        Varje gång I2S-DMA-buffern behöver fler sampel preempterar audio-tasken loopen, levererar
+        sampel, och släpper tillbaka kärnan. Resultatet är att audio-pipelinen aldrig svälter
+        även om scripting eller andra rutiner råkar göra något långsamt just då.</li>
+    <li>Scripting-loopen — den som driver tidslinjen och avfyrar PLAY/SHOW/HIDE — itererar på
+        samma kärna när audio inte är aktiv. När audio körs delar de två arbetet kooperativt
+        på kärna 1 men jittern domineras inte längre av SD-läsning eller logik.</li>
+    <li><strong>I2S DMA-buffert</strong>: 24 buffrar à ~1.5 ms = ~36 ms audio-headroom mellan
+        underflows. Det är så stort fönster att även en SD-läsning som tar 20-30 ms inte hörs.</li>
+    <li><strong>SD read-ahead</strong>: 8 KB buffer på audio-sidan så att decoder-loopen aldrig
+        behöver vänta på sektorläsning.</li>
+  </ul>
+
+  <h3>Synk mellan visuell och hörbar händelse</h3>
+  <ul>
+    <li><strong>Hårdvaru-interlock</strong>: <code>PIN_ACT_ENABLE</code> hålls hög minst 500 ms
+        (<code>ACTUATOR_MIN_MS</code>) under SHOW/HIDE. Värdet är synkroniserat med runnerns
+        antagna <code>stageDurationMs</code> för dessa åtgärder.</li>
+    <li><strong>Audio-lead</strong>: 115 ms (<code>AUDIO_LEAD_MS</code>) subtraheras från
+        PLAY-tider så ljudets <em>hörbara</em> onset (efter DAC-pipelinen) sammanfaller med
+        den visuella ankarpunkten.</li>
+  </ul>
+
+  <div class="callout note">
+    Klockor: kontrollern använder <code>millis()</code> som tidsreferens. Klienter förlitar sig
+    inte på kontrollerns klocka mellan frames utan ankarar varje aktiv-step-snapshot mot den lokala
+    <code>Date.now()</code> så att UI-ticken är oberoende av nätverkslatens och driftande
+    klockor.
+  </div>
+</section>
+
+<section id="protokoll">
+  <h2>WebSocket-protokoll</h2>
+  <p>
+    All kommunikation mellan klient och kontroller sker över en enda WebSocket-anslutning på port 81.
+    Meddelanden är JSON-objekt med ett <code>type</code>-fält (för kommandon klient → kontroller)
+    eller <code>event</code>-fält (för broadcasts kontroller → klient).
+  </p>
+
+  <h3>Anslutningssekvens</h3>
+  <ol>
+    <li>Klient öppnar WebSocket mot <code>ws://&lt;host&gt;:81/</code>.</li>
+    <li>Kontroller skickar omedelbart en <code>hello</code>-envelope:
+<pre><code>{
+  "event": "hello",
+  "state": {
+    "targetsVisible": false,
+    "scriptRunning": false,
+    "scriptLoaded": true,
+    "loadedScriptDsl": "0: PLAY 1 -&gt; ACK\n+0: PLAY 2 -&gt; ACK\n…",
+    "loadedScriptName": "Station 5",
+    "activeStepIndex": -1,
+    "currentStepElapsedMs": 0,
+    "repeatMode": false,
+    "wsClients": 1
+  }
+}</code></pre>
+        <code>hello</code> är det enda kuvertet som bär full DSL — efterföljande state-snapshots
+        utelämnar den för att hålla per-mutations-frames små.</li>
+    <li>Klient renderar UI från denna ögonblicksbild och börjar lyssna på vidare events.</li>
+  </ol>
+
+  <h3>Klient → kontroller (kommandon)</h3>
+  <table>
+    <thead>
+      <tr><th>Kommando</th><th>Fält</th><th>Beskrivning</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>load</code></td>
+          <td><code>script</code>, <code>name</code></td>
+          <td>Ladda DSL på kontrollern. Avvisas med <code>load_rejected</code> om körning pågår.</td></tr>
+      <tr><td><code>start</code></td><td>—</td>
+          <td>Starta laddat manus. Svar: <code>start_ok</code> eller <code>start_ignored</code>.</td></tr>
+      <tr><td><code>abort</code></td><td>—</td>
+          <td>Avbryt pågående körning. Svar: <code>abort_ok</code> eller <code>abort_ignored</code>.</td></tr>
+      <tr><td><code>ack</code></td><td><code>mode</code>: <code>"continue"</code>/<code>"repeat"</code></td>
+          <td>Lös upp ACK-port. Tas emot från vilken klient som helst.</td></tr>
+      <tr><td><code>show</code> / <code>hide</code></td><td>—</td>
+          <td>Direktstyrd aktuator. Avvisas under körning.</td></tr>
+      <tr><td><code>play</code></td><td><code>id</code></td>
+          <td>Spela ljud-ID. Avvisas under körning.</td></tr>
+      <tr><td><code>scripts_list</code></td><td><code>reqId</code></td>
+          <td>Lista sparade manus från SD-kortet.</td></tr>
+      <tr><td><code>script_get</code></td><td><code>reqId</code>, <code>id</code></td>
+          <td>Hämta fullständigt manus-JSON.</td></tr>
+      <tr><td><code>script_save</code></td><td><code>reqId</code>, <code>script</code></td>
+          <td>Spara manus atomärt till SD.</td></tr>
+      <tr><td><code>script_delete</code></td><td><code>reqId</code>, <code>id</code></td>
+          <td>Ta bort manus från SD.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Kontroller → klient (broadcasts)</h3>
+  <p>
+    Broadcasts skickas till <em>alla</em> anslutna klienter:
+  </p>
+  <table>
+    <thead><tr><th>Event</th><th>Innebörd</th></tr></thead>
+    <tbody>
+      <tr><td><code>state</code></td><td>Ögonblicksbild av AppState (utan DSL). Skickas efter varje mutation.</td></tr>
+      <tr><td><code>script_loaded</code></td><td>Nytt manus kompilerat. Detail innehåller DSL + namn.</td></tr>
+      <tr><td><code>script_started</code> / <code>script_finished</code> / <code>script_aborted</code></td>
+          <td>Körnings-livscykel.</td></tr>
+      <tr><td><code>ack_wait_enter</code> / <code>ack_wait_exit</code></td>
+          <td>ACK-port öppnad/stängd.</td></tr>
+      <tr><td><code>action</code></td><td>Åtgärd avfyrad. Detail innehåller typ, argument, varaktighet, exec-tider.</td></tr>
+      <tr><td><code>targets_shown</code> / <code>targets_hidden</code></td><td>Aktuator-event.</td></tr>
+      <tr><td><code>button_show_pressed</code> osv.</td><td>Fysisk knapptryckning på kontrollerns front.</td></tr>
+      <tr><td><code>load_rejected</code></td><td>Klientens <code>load</code> avvisades (oftast: manus körs redan).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Request/reply-korrelation</h3>
+  <p>
+    Bibliotekskommandona (<code>scripts_list</code>, <code>script_get</code>, <code>script_save</code>,
+    <code>script_delete</code>) tar ett klient-genererat <code>reqId</code> och eko:ar det i svaret
+    (<code>scripts_list_ok</code> / <code>script_get_error</code> etc.). Klientens
+    <code>device.request()</code>-hjälpare matchar reply mot promise:n så två samtidiga in-flight
+    requests aldrig blandas ihop.
+  </p>
+</section>
+
+<section id="felsokning">
+  <h2>Felsökning-fliken</h2>
+  <p>
+    Felsökning-fliken är ett tekniskt verktyg snarare än en vy för skjutledare — den samlar:
+  </p>
+  <ul>
+    <li><strong>Anslutningsstatus</strong> och URL.</li>
+    <li><strong>Statusbadges</strong>: Mål (synliga/dolda), Sekvens (vilande/inläst/körs),
+        antal WS-klienter.</li>
+    <li><strong>Senaste åtgärd</strong> med rådata (typ, argument, varaktighet, exec_ms).</li>
+    <li><strong>Eventlogg</strong>: senaste meddelanden från kontrollern i kronologisk ordning.</li>
+    <li><strong>Rå AppState</strong> (JSON-dump direkt från kontrollerns minne).</li>
+    <li><strong>Koppla från</strong>-knapp — fliken är den enda vägen att koppla från utan att
+        ladda om sidan.</li>
+  </ul>
+  <figure class="screenshot">
+    <img src="screenshots/07-felsokning.png" alt="Felsökning-fliken med anslutningsstatus, statusbadges för mål och sekvens, eventlogg och JSON-dump av kontrollerns råa state">
+    <figcaption>Felsökning samlar realtidsstatus, event-logg och rå JSON-dump av kontrollerns AppState
+      — användbart för diagnostik och utveckling.</figcaption>
+  </figure>
+</section>
+
+<section id="framtid-part" class="part">
+  <h2>Framtida utveckling</h2>
+</section>
+
+<section id="framtid">
+  <p>
+    Manussystemets nuvarande designgrund — ett platt manus med varianter och linjär exekvering —
+    täcker enskilda skjutserier väl. Det finns dock naturliga utvidgningar för att bättre stödja
+    hela skjutmoment, sammansatta genomföranden och discipliner med regelstyrda avvikelser,
+    exempelvis färdigskjutning.
+  </p>
+
+  <h3>Enkelt och avancerat läge</h3>
+  <p>
+    På sikt kan appen med fördel delas upp i ett <strong>enkelt läge</strong> och ett
+    <strong>avancerat läge</strong>.
+  </p>
+  <p>
+    I det enkla läget ska användaren inte behöva förstå manusmodell, DSL, tider, varianter eller
+    interna flöden. Appen bör i stället kunna leda en ovan användare genom ett genomförande med
+    frågor som:
+  </p>
+  <div class="wizard-flow">
+    <div class="wizard-card">
+      <div class="wizard-step">
+        Steg 1 av 2
+        <span class="dots">
+          <span class="active"></span>
+          <span></span>
+        </span>
+      </div>
+      <div class="wizard-q">Vad för skjutning vill du genomföra?</div>
+      <div class="wizard-options">
+        <div class="wizard-opt">Fältskjutning</div>
+        <div class="wizard-opt selected">Militär snabbmatch</div>
+        <div class="wizard-opt">Precision</div>
+      </div>
+      <div class="wizard-cta">Nästa</div>
+    </div>
+
+    <div class="wizard-card">
+      <div class="wizard-step">
+        Steg 2 av 2
+        <span class="dots">
+          <span class="done"></span>
+          <span class="active"></span>
+        </span>
+      </div>
+      <div class="wizard-q">Vilken vapengrupp?</div>
+      <div class="wizard-options">
+        <div class="wizard-opt">Vapengrupp A</div>
+        <div class="wizard-opt selected">Vapengrupp B</div>
+        <div class="wizard-opt">Vapengrupp C</div>
+        <div class="wizard-opt">Vapengrupp R</div>
+      </div>
+      <div class="wizard-cta">Starta genomförande</div>
+    </div>
+  </div>
+  <p>
+    Därefter hanterar appen själva proceduren: rätt kommandon, målvisningar, pauser, bekräftelser,
+    serieordning och eventuella regelstyrda avvikelser. Mycket av det som beskrivs nedan hör därför
+    hemma i ett avancerat läge, där man bygger, justerar och felsöker manus, procedurer och
+    DSL-segment.
+  </p>
+
+  <h3>Sammansatta manus och omgångar</h3>
+  <p>
+    Idag motsvarar ett manus i praktiken en enskild serie eller ett begränsat moment. I verkligheten
+    kan en skjutning bestå av flera sådana moment i följd, exempelvis provserie, flera tävlingsserier,
+    pauser, skjutledarbekräftelser och eventuella färdigskjutningar.
+  </p>
+  <p>
+    En möjlig modellutvidgning är därför att införa ett yttre lager, exempelvis <em>Omgång</em>
+    eller <em>Genomförande</em>, som innehåller en lista av manus eller moment samt regler för
+    hur man går från ett moment till nästa.
+  </p>
+  <p>
+    I användargränssnittet skulle detta kunna motsvaras av en flik eller vy för <em>Genomförande</em>,
+    ovanpå den mer detaljerade Manus-vyn. Där kan en avancerad användare komponera flera moment
+    i ordning, ange övergångar och definiera var skjutledaren behöver bekräfta nästa steg.
+  </p>
+
+  <h3>Hantering av vapenfel, eldavbrott och färdigskjutning</h3>
+  <p>
+    En realistisk skjutprocedur måste kunna hantera <strong>vapenfel</strong>, eldavbrott och
+    klick utan att hela genomförandet behöver avbrytas eller startas om. I vissa discipliner,
+    exempelvis militär snabbmatch, behöver färdigskjutning kunna bakas in i själva genomförandet.
+  </p>
+  <p>
+    Det innebär att ett manus inte alltid kan betraktas som en helt linjär sekvens från början
+    till slut. Efter ett visst moment kan skjutledaren behöva fatta ett beslut: fortsätt enligt
+    normal procedur, eller gå in i ett alternativt flöde för färdigskjutning.
+  </p>
+  <p>
+    Exempelvis kan "Eld och målvisning" vara ett moment, medan "Patron ur" är ett separat moment.
+    Mellan dessa kan systemet lägga en beslutspunkt: om ingen färdigskjutning behövs fortsätter
+    flödet med "Patron ur", men om färdigskjutning ska genomföras körs i stället ett särskilt
+    färdigskjutningsmoment innan proceduren fortsätter.
+  </p>
+
+  <h3>DSL och workflow-lager</h3>
+  <p>
+    I stället för att bygga ut DSL:en till ett komplett programmeringsspråk med villkor, hopp och
+    regelhantering bör DSL:en behållas som ett enkelt och deterministiskt lågnivåspråk. Den ska
+    även fortsättningsvis styra exakt när ljud spelas och när mål visas eller döljs, med kommandon
+    som <code>PLAY</code>, <code>SHOW</code>, <code>HIDE</code>, väntetider och <code>ACK</code>.
+  </p>
+  <p>
+    Ovanpå DSL:en kan ett nytt lager införas, exempelvis <em>Genomförande</em>, <em>Procedur</em>
+    eller <em>Workflow</em>. Detta lager beskriver inte bara tidsordning, utan också vad som ska
+    hända härnäst beroende på situationen.
+  </p>
+  <p>
+    Ett skjutmanus består då inte nödvändigtvis av en enda lång DSL-sekvens, utan av flera mindre
+    DSL-segment som workflow-lagret kör i rätt ordning. Workflow-lagret kan också lägga in
+    beslutspunkter mellan segmenten, exempelvis för färdigskjutning, paus, upprepning, avbrott
+    eller återstart.
+  </p>
+  <p>
+    Resultatet blir en tydlig arkitektur där <strong>DSL:en styr exakt utförande</strong>, medan
+    <strong>workflow-lagret styr skjutprocedur, beslut, regler och avvikelser</strong>. Det gör
+    att systemet kan stödja både enkla, linjära skjutserier och mer avancerade discipliner utan
+    att den grundläggande DSL:en blir onödigt komplex.
+  </p>
+</section>
+
+</div>
+</body>
+</html>
